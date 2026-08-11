@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, type ReactNode } from "react";
 import {
   MAX_LEFT_PANEL_WIDTH,
   MIN_LEFT_PANEL_WIDTH,
@@ -7,7 +7,7 @@ import {
 } from "../../lib/state/store";
 import ResizableSidePane from "../ui/ResizableSidePane";
 
-export default function RightSidePane() {
+export default function LeftSidePane({ children }: { children?: ReactNode }) {
   const {
     leftPanel: { isOpen, width },
   } = useGlobalState();
@@ -26,7 +26,7 @@ export default function RightSidePane() {
       maxWidth={MAX_LEFT_PANEL_WIDTH}
       onResize={handleResize}
     >
-      <div className="h-full" />
+      {children}
     </ResizableSidePane>
   );
 }

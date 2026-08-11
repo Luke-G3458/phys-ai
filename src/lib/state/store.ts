@@ -7,7 +7,7 @@ export const MAX_RIGHT_PANEL_WIDTH = 420;
 
 export const INITIAL_STATE: GlobalState = {
   leftPanel: {
-    width: 200,
+    width: 260,
     isOpen: true,
   },
   rightPanel: {

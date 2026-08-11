@@ -33,6 +33,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "amr-sim"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "thiserror 1.0.69",
+ "world-sim",
+]
+
+[[package]]
 name = "android_system_properties"
 version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2704,8 +2713,10 @@ dependencies = [
 name = "phys-ai"
 version = "0.1.0"
 dependencies = [
+ "amr-sim",
  "chrono",
  "dirs 5.0.1",
+ "rand 0.8.5",
  "serde",
  "serde_json",
  "tauri",
@@ -2713,6 +2724,7 @@ dependencies = [
  "tauri-plugin-dialog",
  "tauri-plugin-opener",
  "uuid",
+ "world-sim",
 ]
 
 [[package]]
@@ -5453,6 +5465,16 @@ dependencies = [
  "serde_json",
  "unicode-xid",
  "wasmparser",
+]
+
+[[package]]
+name = "world-sim"
+version = "0.1.0"
+dependencies = [
+ "rand 0.8.5",
+ "serde",
+ "serde_json",
+ "thiserror 1.0.69",
 ]
 
 [[package]]

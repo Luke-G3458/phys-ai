@@ -1,0 +1,17 @@
+[package]
+name = "amr-sim"
+version = "0.1.0"
+edition = "2024"
+description = "Differential-drive AMR simulation module for Physical AI"
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+thiserror = "1"
+world-sim = { path = "../world-sim" }
+
+[dev-dependencies]
+rand = "0.8"
+
+[[bench]]
+name = "amr"
+harness = false

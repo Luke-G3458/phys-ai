@@ -4,15 +4,17 @@ pub mod commands;
 pub mod events;
 
 use commands::window::force_close_window;
+use std::sync::Mutex;
+use tauri::Manager;
 
 use crate::commands::sample::greet;
+use crate::commands::simulation::{
+    generate_map, load_map, reset_simulation, save_map, set_motor_command, set_simulation_running,
+    set_visualization_speed, simulation_snapshot, step_simulation, AppSimulation,
+};
 
 fn create_main_window(app: &tauri::App) -> Result<(), Box<dyn std::error::Error>> {
-    let title = app
-        .config()
-        .product_name
-        .as_deref()
-        .unwrap_or("Tauri App");
+    let title = app.config().product_name.as_deref().unwrap_or("Tauri App");
     let mut builder =
         tauri::WebviewWindowBuilder::new(app, "main", tauri::WebviewUrl::App(Default::default()))
             .title(title)
@@ -46,6 +48,8 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .setup(|app| {
             create_main_window(app)?;
+            let simulation = AppSimulation::create_default().map_err(std::io::Error::other)?;
+            app.manage(Mutex::new(simulation));
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -53,6 +57,16 @@ pub fn run() {
             greet,
             // Window commands
             force_close_window,
+            // Simulation commands
+            simulation_snapshot,
+            generate_map,
+            load_map,
+            save_map,
+            reset_simulation,
+            set_simulation_running,
+            step_simulation,
+            set_visualization_speed,
+            set_motor_command,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
