@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Tauri Boilerplate",
+  "productName": "Physical Ai",
   "version": "0.1.0",
-  "identifier": "com.lukegerth.tauri-boilerplate",
+  "identifier": "com.lukegerth.phys-ai",
   "build": {
     "beforeDevCommand": "bun run dev",
     "devUrl": "http://localhost:1420",

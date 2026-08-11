@@ -2,7 +2,7 @@
   "name": "phys-ai",
   "private": true,
   "version": "0.1.0",
-  "description": "A reusable Tauri 2 application boilerplate",
+  "description": "Physical AI test",
   "type": "module",
   "packageManager": "bun@1.3.14",
   "scripts": {
