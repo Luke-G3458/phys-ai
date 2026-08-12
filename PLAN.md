@@ -77,9 +77,9 @@ A movement request returns the accepted pose and collision information. Motion i
 - The robot pose is its center `(x, y)` and orientation.
 - Differential drive is controlled by independent left and right motor commands in the range `[-1.0, 1.0]`. Negative values reverse that side; the robot converts each value to meters per second using its configured maximum wheel speed.
 - Each step converts wheel velocities to linear and angular motion, then asks the world to apply the resulting pose. Collision response comes entirely from `world-sim`.
-- A centered, ideal 360-degree lidar uses exactly 64 evenly spaced rays. Ray `0` points forward and indices progress counterclockwise. Each reading is a distance in meters; no hit returns the configured maximum range.
+- A centered, ideal 360-degree lidar uses a configurable number of evenly spaced rays. Ray `0` points forward and indices progress counterclockwise. Each reading is a distance in meters; no hit returns the configured maximum range.
 
-64 rays give 5.625-degree spacing, which is a useful initial balance between wall visibility and ray-cast cost. The count is a fixed observation contract and should only change after benchmarking and before controller formats depend on it. Noise and configurable ray counts are deferred.
+The default remains 64 rays, giving 5.625-degree spacing, while individual AMRs can reduce the count and range for simpler controller observation contracts. The visualization uses 16 rays with a 5-meter maximum range. Noise is deferred.
 
 ### Public API and behavior
 
@@ -88,7 +88,7 @@ Amr::new(config, initial_pose) -> Result<Amr, AmrError>
 amr.set_motor_command(MotorCommand { left, right }) -> Result<(), AmrError>
 amr.motor_command() -> MotorCommand
 amr.pose() -> Pose2
-amr.lidar() -> &[f32; LIDAR_RAY_COUNT]
+amr.lidar() -> &[f32]
 amr.observation() -> &AmrObservation
 
 impl SimulationModule for Amr
@@ -96,7 +96,7 @@ impl SimulationModule for Amr
 
 - Initialization registers the rectangular body and fails if its starting pose is invalid or colliding.
 - Finite motor values outside `[-1.0, 1.0]` are clamped; non-finite values return an error. Setting a command does not advance time.
-- `AmrObservation` contains the current pose, collision status, and `[f32; 64]` lidar distances. It is valid after initialization and refreshed after each step, with storage reused between steps.
+- `AmrObservation` contains the current pose, collision status, and configurable lidar distances. It is valid after initialization and refreshed after each step, with storage reused between steps.
 - Each step applies the current motor command, resolves movement, and then scans from the accepted pose. Only the world's `step` and `run_steps` advance time.
 - Manual tests and future controllers use the same boundary: read `observation` or `lidar`, produce a `MotorCommand`, call `set_motor_command`, and advance the world. A future neural-network controller may perform this loop and handle model loading without adding a `rete` dependency to `amr-sim`.
 

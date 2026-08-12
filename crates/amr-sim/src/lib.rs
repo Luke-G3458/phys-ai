@@ -4,11 +4,11 @@ use serde::{Deserialize, Serialize};
 use std::f32::consts::TAU;
 use thiserror::Error;
 use world_sim::{
-    normalize_angle, BodyId, InitContext, Pose2, RectangleBody, SimulationError, SimulationModule,
-    StepContext, Vec2,
+    BodyId, InitContext, Pose2, RectangleBody, SimulationError, SimulationModule, StepContext,
+    Vec2, normalize_angle,
 };
 
-pub const LIDAR_RAY_COUNT: usize = 64;
+pub const DEFAULT_LIDAR_RAY_COUNT: usize = 64;
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub struct AmrConfig {
@@ -16,6 +16,7 @@ pub struct AmrConfig {
     pub width: f32,
     pub track_width: f32,
     pub maximum_wheel_speed: f32,
+    pub lidar_ray_count: usize,
     pub lidar_maximum_range: f32,
 }
 
@@ -26,6 +27,7 @@ impl Default for AmrConfig {
             width: 0.55,
             track_width: 0.45,
             maximum_wheel_speed: 1.5,
+            lidar_ray_count: DEFAULT_LIDAR_RAY_COUNT,
             lidar_maximum_range: 15.0,
         }
     }
@@ -48,7 +50,7 @@ impl MotorCommand {
 pub struct AmrObservation {
     pub pose: Pose2,
     pub collided: bool,
-    pub lidar: [f32; LIDAR_RAY_COUNT],
+    pub lidar: Vec<f32>,
 }
 
 #[derive(Debug, Error)]
@@ -83,7 +85,7 @@ impl Amr {
             observation: AmrObservation {
                 pose: initial_pose,
                 collided: false,
-                lidar: [config.lidar_maximum_range; LIDAR_RAY_COUNT],
+                lidar: vec![config.lidar_maximum_range; config.lidar_ray_count],
             },
         })
     }
@@ -107,7 +109,7 @@ impl Amr {
         self.observation.pose
     }
 
-    pub fn lidar(&self) -> &[f32; LIDAR_RAY_COUNT] {
+    pub fn lidar(&self) -> &[f32] {
         &self.observation.lidar
     }
 
@@ -147,7 +149,7 @@ impl Amr {
         let pose = self.observation.pose;
         let maximum = self.config.lidar_maximum_range;
         for (index, reading) in self.observation.lidar.iter_mut().enumerate() {
-            let angle = pose.orientation + index as f32 * TAU / LIDAR_RAY_COUNT as f32;
+            let angle = pose.orientation + index as f32 * TAU / self.config.lidar_ray_count as f32;
             let direction = Vec2::new(angle.cos(), angle.sin());
             *reading = context
                 .raycast(pose.position(), direction, maximum)
@@ -160,7 +162,7 @@ impl Amr {
         let pose = self.observation.pose;
         let maximum = self.config.lidar_maximum_range;
         for (index, reading) in self.observation.lidar.iter_mut().enumerate() {
-            let angle = pose.orientation + index as f32 * TAU / LIDAR_RAY_COUNT as f32;
+            let angle = pose.orientation + index as f32 * TAU / self.config.lidar_ray_count as f32;
             let direction = Vec2::new(angle.cos(), angle.sin());
             *reading = context
                 .raycast(pose.position(), direction, maximum)
@@ -196,6 +198,11 @@ impl SimulationModule for Amr {
 }
 
 fn validate_config(config: AmrConfig) -> Result<(), AmrError> {
+    if config.lidar_ray_count == 0 {
+        return Err(AmrError::InvalidConfig(
+            "lidar ray count must be positive".into(),
+        ));
+    }
     for (name, value) in [
         ("length", config.length),
         ("width", config.width),
@@ -242,12 +249,14 @@ mod tests {
                 right: -1.0
             }
         );
-        assert!(robot
-            .set_motor_command(MotorCommand {
-                left: f32::NAN,
-                right: 0.0,
-            })
-            .is_err());
+        assert!(
+            robot
+                .set_motor_command(MotorCommand {
+                    left: f32::NAN,
+                    right: 0.0,
+                })
+                .is_err()
+        );
     }
 
     #[test]
@@ -296,7 +305,30 @@ mod tests {
         let robot = Amr::new(AmrConfig::default(), Pose2::new(5.0, 5.0, 0.0)).unwrap();
         let simulation = Simulation::new(map, robot).unwrap();
         assert!((simulation.module().lidar()[0] - 1.9).abs() < 0.001);
-        assert!((simulation.module().lidar()[LIDAR_RAY_COUNT / 4] - 5.0).abs() < 0.001);
+        assert!((simulation.module().lidar()[DEFAULT_LIDAR_RAY_COUNT / 4] - 5.0).abs() < 0.001);
+    }
+
+    #[test]
+    fn lidar_ray_count_and_range_are_configurable() {
+        let config = AmrConfig {
+            lidar_ray_count: 16,
+            lidar_maximum_range: 5.0,
+            ..AmrConfig::default()
+        };
+        let robot = Amr::new(config, Pose2::new(5.0, 5.0, 0.0)).unwrap();
+        let simulation = Simulation::new(open_map(), robot).unwrap();
+
+        assert_eq!(simulation.module().lidar(), &[5.0; 16]);
+    }
+
+    #[test]
+    fn zero_lidar_rays_are_rejected() {
+        let config = AmrConfig {
+            lidar_ray_count: 0,
+            ..AmrConfig::default()
+        };
+
+        assert!(Amr::new(config, Pose2::new(5.0, 5.0, 0.0)).is_err());
     }
 
     #[test]

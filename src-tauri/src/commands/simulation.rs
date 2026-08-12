@@ -14,6 +14,8 @@ const FIXED_STEP_SECONDS: f32 = 1.0 / 120.0;
 const DEFAULT_STEPS_PER_SNAPSHOT: u32 = 4;
 const MAX_STEPS_PER_SNAPSHOT: u32 = 4096;
 const MAP_GENERATION_ATTEMPTS: usize = 32;
+const VISUALIZATION_LIDAR_RAY_COUNT: usize = 16;
+const VISUALIZATION_LIDAR_MAXIMUM_RANGE: f32 = 5.0;
 
 pub struct AppSimulation {
     simulation: Simulation<Amr>,
@@ -230,7 +232,11 @@ pub fn set_motor_command(
 
 fn create_simulation(map: Map) -> Result<Simulation<Amr>, String> {
     let bounds = map.bounds();
-    let config = AmrConfig::default();
+    let config = AmrConfig {
+        lidar_ray_count: VISUALIZATION_LIDAR_RAY_COUNT,
+        lidar_maximum_range: VISUALIZATION_LIDAR_MAXIMUM_RANGE,
+        ..AmrConfig::default()
+    };
     let margin_x = config.length * 0.5 + 0.05;
     let margin_y = config.width * 0.5 + 0.05;
     let mut candidates = Vec::new();
@@ -276,7 +282,14 @@ mod tests {
         let map = Map::new(Bounds::new(8.0, 6.0), Vec::new()).unwrap();
         let simulation = create_simulation(map).unwrap();
         assert_eq!(simulation.module().pose(), Pose2::new(4.0, 3.0, 0.0));
-        assert_eq!(simulation.module().lidar().len(), 64);
+        assert_eq!(
+            simulation.module().lidar().len(),
+            VISUALIZATION_LIDAR_RAY_COUNT
+        );
+        assert_eq!(
+            simulation.module().config().lidar_maximum_range,
+            VISUALIZATION_LIDAR_MAXIMUM_RANGE
+        );
     }
 
     #[test]
@@ -291,7 +304,11 @@ mod tests {
         };
         let snapshot = app.snapshot();
         assert_eq!(snapshot.world.bodies.len(), 1);
-        assert_eq!(snapshot.robot.lidar.len(), 64);
+        assert_eq!(snapshot.robot.lidar.len(), VISUALIZATION_LIDAR_RAY_COUNT);
+        assert_eq!(
+            snapshot.robot.lidar_maximum_range,
+            VISUALIZATION_LIDAR_MAXIMUM_RANGE
+        );
         assert_eq!(snapshot.robot.motor_command, MotorCommand::STOPPED);
     }
 }
