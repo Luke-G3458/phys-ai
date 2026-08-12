@@ -79,7 +79,7 @@ A movement request returns the accepted pose and collision information. Motion i
 - Each step converts wheel velocities to linear and angular motion, then asks the world to apply the resulting pose. Collision response comes entirely from `world-sim`.
 - A centered, ideal 360-degree lidar uses a configurable number of evenly spaced rays. Ray `0` points forward and indices progress counterclockwise. Each reading is a distance in meters; no hit returns the configured maximum range.
 
-The default remains 64 rays, giving 5.625-degree spacing, while individual AMRs can reduce the count and range for simpler controller observation contracts. The visualization uses 8 rays with a 3-meter maximum range. Noise is deferred.
+The default remains 64 rays, giving 5.625-degree spacing, while individual AMRs can reduce the count and range for simpler controller observation contracts. The visualization uses 16 rays with a 5-meter maximum range. Noise is deferred.
 
 ### Public API and behavior
 

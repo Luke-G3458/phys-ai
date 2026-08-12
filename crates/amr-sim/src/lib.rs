@@ -311,14 +311,14 @@ mod tests {
     #[test]
     fn lidar_ray_count_and_range_are_configurable() {
         let config = AmrConfig {
-            lidar_ray_count: 8,
-            lidar_maximum_range: 3.0,
+            lidar_ray_count: 16,
+            lidar_maximum_range: 5.0,
             ..AmrConfig::default()
         };
         let robot = Amr::new(config, Pose2::new(5.0, 5.0, 0.0)).unwrap();
         let simulation = Simulation::new(open_map(), robot).unwrap();
 
-        assert_eq!(simulation.module().lidar(), &[3.0; 8]);
+        assert_eq!(simulation.module().lidar(), &[5.0; 16]);
     }
 
     #[test]

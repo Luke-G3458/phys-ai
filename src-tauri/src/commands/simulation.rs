@@ -14,8 +14,8 @@ const FIXED_STEP_SECONDS: f32 = 1.0 / 120.0;
 const DEFAULT_STEPS_PER_SNAPSHOT: u32 = 4;
 const MAX_STEPS_PER_SNAPSHOT: u32 = 4096;
 const MAP_GENERATION_ATTEMPTS: usize = 32;
-const VISUALIZATION_LIDAR_RAY_COUNT: usize = 8;
-const VISUALIZATION_LIDAR_MAXIMUM_RANGE: f32 = 3.0;
+const VISUALIZATION_LIDAR_RAY_COUNT: usize = 16;
+const VISUALIZATION_LIDAR_MAXIMUM_RANGE: f32 = 5.0;
 
 pub struct AppSimulation {
     simulation: Simulation<Amr>,
