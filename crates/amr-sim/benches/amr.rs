@@ -1,5 +1,5 @@
 use amr_sim::{Amr, AmrConfig, MotorCommand};
-use rand::{rngs::StdRng, SeedableRng};
+use rand::{SeedableRng, rngs::StdRng};
 use std::hint::black_box;
 use std::time::Instant;
 use world_sim::{Bounds, Map, MapConfig, Pose2, Simulation};
